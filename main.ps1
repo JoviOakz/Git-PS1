@@ -31,7 +31,14 @@ function gitAdd {
             Add-Content -Path $gitTxt -Value $a
         }
         else {
-            Write-Host "Arquivo nao encontrado"
+            $allArquives = Get-ChildItem -Path $currentDirectory -Recurse -Name
+
+            foreach ($name in $allArquives) {
+                if ($name -match $a) {
+                    $aPath = Join-Path -Path $currentDirectory -ChildPath $name
+                    Add-Content -Path $gitTxt -Value $name
+                }
+            }
         }
     }
 }
@@ -77,7 +84,20 @@ function gitCommit {
             $currentPath = Join-Path -Path $currentDirectory -ChildPath $currentArquive
             
             if ($currentPath -ne "$currentDirectory\") {
-                Copy-Item -Path $currentPath -Destination $Commit -Recurse
+                $allArquives = Get-ChildItem -Path $currentDirectory -Directory -Name
+                
+                foreach ($name in $allArquives) {
+                    if ($currentArquive -match $name) {
+                        $copyPaste = Join-Path -Path $currentDirectory -ChildPath $name
+                        $copyArquive = Join-Path -Path $currentDirectory -ChildPath $currentArquive
+                        
+                        New-Item -Path $copyPaste -ItemType Directory | Out-Null
+
+                        Copy-Item -Path $copyArquive -Destination $copyPaste -Recurse
+                    } else {
+                        Copy-Item -Path $currentPath -Destination $Commit -Recurse
+                    }
+                }
             }
         }
     }
