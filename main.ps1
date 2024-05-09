@@ -17,7 +17,7 @@ function gitInit {
 
 function gitAdd {
     param (
-        $a
+        [string]$a
     )
 
     $aPath = Join-Path -Path $currentDirectory -ChildPath $a
@@ -29,11 +29,18 @@ function gitAdd {
     else {
         if (Test-Path -Path $aPath) {
             Add-Content -Path $gitTxt -Value $a
-            Write-Host "Arquivo adicionado"
         }
         else {
             Write-Host "Arquivo nao encontrado"
         }
+    }
+}
+
+function gitAdd. {
+    $inPath = Select-String -Path $gitTxt -Pattern "."
+
+    if (-not $inPath) {
+        Add-Content -Path $gitTxt -Value "."
     }
 }
 
@@ -54,9 +61,24 @@ function gitCommit {
     for ($i = 0; $i -lt $numeroDeLinhas; $i++) {
         $currentArquive = $linhas[$i]
 
-        if ($currentArquive -ne "") {
-            Copy-Item -Path "$currentDirectory\$currentArquive" -Destination $Commit -Recurse
-            Write-Host "$currentDirectory\$currentArquive"
+        if ($currentArquive -eq ".") {
+            $allArquives = Get-ChildItem -Path $currentDirectory -Name
+
+            foreach ($name in $allArquives) {
+                if ($name -notmatch "Git") {
+                    $currentPath = Join-Path -Path $currentDirectory -ChildPath $name
+                    
+                    Copy-Item -Path $currentPath -Destination $Commit -Recurse
+                    Write-Host $currentPath
+                }
+            }
+        }
+        else {
+            $currentPath = Join-Path -Path $currentDirectory -ChildPath $currentArquive
+            
+            if ($currentPath -ne "$currentDirectory\") {
+                Copy-Item -Path $currentPath -Destination $Commit -Recurse
+            }
         }
     }
 
